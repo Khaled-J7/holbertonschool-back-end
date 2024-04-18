@@ -1,31 +1,32 @@
 #!/usr/bin/python3
-"""
-Python script that, using this REST API, for a given employee ID,
-returns information about his/her To Do list progress.
-"""
+"""Python script to export data in the JSON format."""
+
 import json
 import requests
-import sys
+from sys import argv
 
 
-def TODO_PROGRESS():
-    user_id = sys.argv[1]
-    user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
-    todos_url = 'https://jsonplaceholder.typicode.com/todos/?userId={}'.format(
-        user_id)
-    name = requests.get(user_url).json().get('username')
-    todo_response = requests.get(todos_url).json()
-    tasks = []
+if __name__ == '__main__':
+    main_url = 'https://jsonplaceholder.typicode.com'
+    users_url = main_url + "/users"
+    todos_url = main_url + "/todos"
 
-    with open('{}.json'.format(user_id), 'w+') as file:
-        for todo in todo_response:
-            task = {"task": todo.get("title"),
-                    "completed": todo.get("completed"), "username": name}
-            tasks.append(task)
-        information = {user_id: tasks}
-        file.write(json.dumps(information))
+    users_result = requests.get(users_url).json()
+    todos_result = requests.get(todos_url).json()
 
+    json_dic = {}
+    json_list = []
 
-if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        TODO_PROGRESS()
+    for user in users_result:
+        if user['id'] == int(argv[1]):
+            user_name = user['username']
+    for todo in todos_result:
+        if todo['userId'] == int(argv[1]):
+            internal_dict = {}
+            internal_dict["task"] = todo['title']
+            internal_dict["completed"] = todo['completed']
+            internal_dict["username"] = user_name
+            json_list.append(internal_dict)
+    json_dic[argv[1]] = json_list
+    with open(f"{argv[1]}.json", 'w') as json_file:
+        json.dump(json_dic, json_file)
