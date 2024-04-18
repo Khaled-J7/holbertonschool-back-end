@@ -1,35 +1,25 @@
 #!/usr/bin/python3
-"""
-Python script to export data in the CSV format.
-"""
+"""Python script to export data in the CSV format."""
+
 import requests
 from sys import argv
 
 
-def export_to_CSV():
-    """
-    function deal with api
-    """
-    user_id = argv[1]
-    req_name = requests.get(
-        "https://jsonplaceholder.typicode.com/users/{}".format(user_id))
-    req_todo = requests.get(
-        "https://jsonplaceholder.typicode.com/users/{}/todos".format(
-            user_id))
+if __name__ == '__main__':
+    main_url = 'https://jsonplaceholder.typicode.com'
+    users_url = main_url + "/users"
+    todos_url = main_url + "/todos"
 
-    result = req_todo.json()
-    username = (req_name.json()['username'])
-    csv_file = f"{user_id}.csv"
+    users_result = requests.get(users_url).json()
+    todos_result = requests.get(todos_url).json()
 
-    with open(csv_file, 'w') as f:
-        for ele in result:
-            f.write(
-                '"{}","{}","{}","{}"\n'.format(
-                    user_id,
-                    username,
-                    ele['completed'],
-                    ele['title']))
-
-
-if __name__ == "__main__":
-    export_to_CSV()
+    for user in users_result:
+        if user['id'] == int(argv[1]):
+            user_name = user['username']
+    with open('{}.csv'.format(argv[1]), 'w') as f:
+        for todo in todos_result:
+            if todo['userId'] == int(argv[1]):
+                task = todo['completed']
+                title = todo['title']
+                f.write(
+                    f"\"{argv[1]}\",\"{user_name}\",\"{task}\",\"{title}\"\n")
