@@ -1,30 +1,33 @@
 #!/usr/bin/python3
-"""
-Python script that, using this REST API, for a given employee ID,
-returns information about his/her To Do list progress.
-"""
+"""Python script to export data in the JSON format."""
+
 import json
 import requests
+from sys import argv
 
 
-def TODO_PROGRESS():
-    users_url = 'https://jsonplaceholder.typicode.com/users'
-    all_users = requests.get(users_url).json()
-    information = {}
+if __name__ == '__main__':
+    main_url = 'https://jsonplaceholder.typicode.com'
+    users_url = main_url + "/users"
+    todos_url = main_url + "/todos"
 
-    for user in all_users:
+    users_result = requests.get(users_url).json()
+    todos_result = requests.get(todos_url).json()
+
+    json_dic = {}
+    for user in users_result:
         user_id = user['id']
-        name = user['username']
-        todos = 'https://jsonplaceholder.typicode.com/todos?userId={}'.format(
-            user_id)
-        todos = requests.get(todos).json()
-        tasks = [{"username": name, "task": todo["title"],
-                  "completed": todo["completed"]} for todo in todos]
-        information[user_id] = tasks
 
-    with open('todo_all_employees.json', 'w') as file:
-        json.dump(information, file)
+        if user_id not in json_dic:
+            json_dic[user_id] = []
 
+        for todo in todos_result:
+            internal_dic = {}
+            if user_id == todo['userId']:
+                internal_dic["username"] = user['username']
+                internal_dic["task"] = todo['title']
+                internal_dic["completed"] = todo['completed']
+                json_dic[user_id].append(internal_dic)
 
-if __name__ == "__main__":
-    TODO_PROGRESS()
+    with open(f"todo_all_employees.json", 'w') as j_file:
+        json.dump(json_dic, j_file)
